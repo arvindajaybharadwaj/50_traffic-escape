@@ -7,22 +7,40 @@ COLORS=[(220,60,60),(220,140,40),(140,60,180),(60,180,80),(180,180,40),(60,80,20
 class Car:
     def __init__(self, lane_x, y, direction, speed):
         self.rect=pygame.Rect(lane_x+10,y,60,80)
+        self.y=float(y)
         self.direction=direction  # 1=down, -1=up
         self.speed=speed
         self.color=random.choice(COLORS)
 
     def update(self):
-        self.rect.y+=self.direction*self.speed
+        self.y+=self.direction*self.speed
+        self.rect.y=round(self.y)
 
     def off_screen(self,height):
         return self.rect.top>height+100 or self.rect.bottom<-100
 
-    def draw(self,screen):
+    def draw(self,screen,night=False):
+        if night:
+            beam_length=110
+            beam=pygame.Surface((130,beam_length),pygame.SRCALPHA)
+            if self.direction==1:
+                points=[(45,0),(85,0),(130,beam_length),(0,beam_length)]
+                beam_y=self.rect.bottom
+                light_y=self.rect.bottom-5
+            else:
+                points=[(0,0),(130,0),(85,beam_length),(45,beam_length)]
+                beam_y=self.rect.top-beam_length
+                light_y=self.rect.top+5
+            pygame.draw.polygon(beam,(255,235,140,70),points)
+            screen.blit(beam,(self.rect.left-35,beam_y))
         pygame.draw.rect(screen,self.color,self.rect,border_radius=8)
         pygame.draw.rect(screen,(180,220,240),pygame.Rect(self.rect.x+8,self.rect.y+10,44,22),border_radius=4)
         for wx in [self.rect.x+6,self.rect.right-16]:
             for wy in [self.rect.y+4,self.rect.bottom-16]:
                 pygame.draw.rect(screen,(30,30,30),pygame.Rect(wx,wy,10,12),border_radius=3)
+        if night:
+            for light_x in (self.rect.left+15,self.rect.right-15):
+                pygame.draw.circle(screen,(255,245,175),(light_x,light_y),5)
 
 def make_car(lane_idx,height,speed):
     x=lane_idx*LANE_W
